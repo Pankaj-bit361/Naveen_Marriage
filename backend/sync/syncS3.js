@@ -130,4 +130,4 @@ const addImagesToCollection = async (req, res) => {
   }
 };
 
-module.exports = {syncS3ImagesToDB, getPaginatedImages, createCollection, addImagesToCollection};
+module.exports = {getPaginatedImages, createCollection, addImagesToCollection};
