@@ -11,6 +11,12 @@ app.use(express.json());
 app.use('/images', imageRoutes);
 
 // MongoDB Connection
+
+app.get('/', async(req, res) => {
+    return res.json({ "msg" : "test server"})
+})
+
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
