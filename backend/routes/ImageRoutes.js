@@ -3,7 +3,7 @@ const router = express.Router();
 const Image = require('../models/Image');
 const syncS3ImagesToDB = require('../sync/syncS3');
 
-router.get('/', syncS3ImagesToDB.getPaginatedImages);
+router.get('/images', syncS3ImagesToDB.getPaginatedImages);
 
 router.post('/create', syncS3ImagesToDB.createCollection);
 router.post('/add-images', syncS3ImagesToDB.addImagesToCollection);
