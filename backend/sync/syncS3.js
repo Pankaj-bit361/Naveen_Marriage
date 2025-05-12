@@ -67,27 +67,38 @@ const createCollection = async (req, res) => {
   }
 };
 
-// Function to add images to a collection
-const addImagesToCollection = async (req, res) => {
-  const { imageIds , collectionId} = req.body;
 
-  if (!imageIds || imageIds.length === 0) return res.status(400).json({ message: "No image IDs provided" });
+const addImagesToCollection = async (req, res) => {
+  const { imageIds, collectionId } = req.body;
+
+  if (!imageIds || imageIds.length === 0)
+    return res.status(400).json({ message: "No image IDs provided" });
 
   try {
     const collection = await ImageCollection.findById(collectionId);
+    if (!collection)
+      return res.status(404).json({ message: "Collection not found" });
 
-    console.log(collection, collectionId, imageIds)
+    const imagesToAdd = await Image.find({ _id: { $in: imageIds } });
 
-    if (!collection) return res.status(404).json({ message: "Collection not found" });
+    if (imagesToAdd.length === 0)
+      return res.status(404).json({ message: "No valid images found" });
 
-    collection.images.push(...imageIds);
+    const formattedImages = imagesToAdd.map(img => ({
+      imageUrl: img.imageUrl,
+      filename: img.filename
+    }));
+
+    collection.images.push(...formattedImages);
 
     await collection.save();
     res.json({ message: "Images added to collection successfully" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to add images' });
   }
 };
+
 
 // Function to get all collections
 const getAllCollections = async (req, res) => {
