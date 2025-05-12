@@ -69,13 +69,14 @@ const createCollection = async (req, res) => {
 
 // Function to add images to a collection
 const addImagesToCollection = async (req, res) => {
-  const { collectionId } = req.params;
-  const { imageIds } = req.body;
+  const { imageIds , collectionId} = req.body;
 
   if (!imageIds || imageIds.length === 0) return res.status(400).json({ message: "No image IDs provided" });
 
   try {
     const collection = await ImageCollection.findById(collectionId);
+
+    console.log(collection, collectionId, imageIds)
 
     if (!collection) return res.status(404).json({ message: "Collection not found" });
 

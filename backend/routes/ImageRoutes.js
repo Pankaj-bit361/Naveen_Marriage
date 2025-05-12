@@ -4,11 +4,12 @@ const Image = require('../models/Image');
 const syncS3ImagesToDB = require('../sync/syncS3');
 
 router.get('/images', syncS3ImagesToDB.getPaginatedImages);
+router.get("/collections/:collectionId", syncS3ImagesToDB.getCollectionImages)
+router.get("/collections", syncS3ImagesToDB.getAllCollections)
 
 router.post('/create', syncS3ImagesToDB.createCollection);
 router.post('/add-images', syncS3ImagesToDB.addImagesToCollection);
-router.get("/collections/:collectionId", syncS3ImagesToDB.getCollectionImages)
-router.get("collections", syncS3ImagesToDB.getAllCollections)
+
 
 // Trigger sync with S3
 // router.post('/sync', async (req, res) => {
