@@ -7,6 +7,8 @@ router.get('/', syncS3ImagesToDB.getPaginatedImages);
 
 router.post('/create', syncS3ImagesToDB.createCollection);
 router.post('/add-images', syncS3ImagesToDB.addImagesToCollection);
+router.get("/collections/:collectionId", syncS3ImagesToDB.getCollectionImages)
+router.get("collections", syncS3ImagesToDB.getAllCollections)
 
 // Trigger sync with S3
 // router.post('/sync', async (req, res) => {

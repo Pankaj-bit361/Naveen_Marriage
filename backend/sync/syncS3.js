@@ -46,88 +46,94 @@ const ImageCollection = require('../models/ImageCollection');
 // };
 
 
-const getPaginatedImages = async (req, res) => {
+const createCollection = async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) return res.status(400).json({ message: "Collection name is required" });
+
+  const newCollection = new ImageCollection({
+    name,
+    createdAt: new Date(),
+  });
+
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 30;
-    const skip = (page - 1) * limit;
-
-    const totalImages = await Image.countDocuments();
-    const images = await Image.find()
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
+    await newCollection.save();
     res.json({
-      success: true,
-      currentPage: page,
-      totalPages: Math.ceil(totalImages / limit),
-      totalImages,
-      images
+      message: "Collection created successfully",
+      collectionId: newCollection._id,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch images' });
-  }
-};
-
-
-
-const createCollection = async (req, res) => {
-  try {
-    const { name } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'Collection name is required' });
-    }
-
-    const existing = await ImageCollection.findOne({ name });
-    if (existing) {
-      return res.status(400).json({ error: 'Collection with this name already exists' });
-    }
-
-    const newCollection = await ImageCollection.create({ name, images: [] });
-    res.status(201).json({ message: 'Collection created', data: newCollection });
-  } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Failed to create collection' });
   }
 };
 
-
-
-
+// Function to add images to a collection
 const addImagesToCollection = async (req, res) => {
+  const { collectionId } = req.params;
+  const { imageIds } = req.body;
+
+  if (!imageIds || imageIds.length === 0) return res.status(400).json({ message: "No image IDs provided" });
+
   try {
-    const { collectionId, images } = req.body;
-
-    if (!collectionId || !Array.isArray(images) || images.length === 0) {
-      return res.status(400).json({ error: 'Collection ID and image array required' });
-    }
-
-    if (images.length > 20) {
-      return res.status(400).json({ error: 'Cannot add more than 20 images at once' });
-    }
-
     const collection = await ImageCollection.findById(collectionId);
-    if (!collection) {
-      return res.status(404).json({ error: 'Collection not found' });
-    }
 
-    const existingUrls = new Set(collection.images.map(img => img.imageUrl));
+    if (!collection) return res.status(404).json({ message: "Collection not found" });
 
-    const newImages = images.filter(
-      img => !existingUrls.has(img.imageUrl)
-    );
+    collection.images.push(...imageIds);
 
-    collection.images.push(...newImages);
     await collection.save();
-
-    res.status(200).json({ message: `${newImages.length} images added`, data: collection });
+    res.json({ message: "Images added to collection successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to add images to collection' });
+    res.status(500).json({ error: 'Failed to add images' });
   }
 };
 
-module.exports = {getPaginatedImages, createCollection, addImagesToCollection};
+// Function to get all collections
+const getAllCollections = async (req, res) => {
+  try {
+    const collections = await ImageCollection.find();
+    res.json(collections);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch collections' });
+  }
+};
+
+// Function to get images from a collection
+const getCollectionImages = async (req, res) => {
+  const { collectionId } = req.params;
+
+  try {
+    const collection = await ImageCollection.findById(collectionId);
+
+    if (!collection) return res.status(404).json({ message: "Collection not found" });
+
+    const images = collection.images;
+    res.json(images);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch images' });
+  }
+};
+
+// Function to get paginated images
+const getPaginatedImages = async (req, res) => {
+  const { page = 1, limit = 30 } = req.query;
+
+  try {
+    const images = await Image.find()
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    res.json({ images });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch images' });
+  }
+};
+
+module.exports = {
+  createCollection,
+  addImagesToCollection,
+  getAllCollections,
+  getCollectionImages,
+  getPaginatedImages,
+};

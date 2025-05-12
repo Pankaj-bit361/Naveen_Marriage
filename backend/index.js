@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use('/images', imageRoutes);
+app.use('/api', imageRoutes);
 
 // MongoDB Connection
 
